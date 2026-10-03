@@ -21,6 +21,8 @@
     <script type="text/babel">
         const { useState } = React;
 
+        // ==========================================
+        // ==========================================
         const GALLERY_DB = [
             // --- CLUSTER 1: Winter College Trip (Dec 2021) ---
             { id: "1", emoji: "☕", visual: "User and Rahul sitting at a cafe in heavy winter coats holding coffee.", exif_date: "Dec 15, 2021", source: "Camera", true_event: "Winter Trip 2021" },
@@ -78,13 +80,35 @@
             { id: "13", emoji: "🐕", visual: "Golden retriever sleeping on a green living room couch.", exif_date: "Jan 05, 2025", source: "Camera", true_event: "Everyday" },
             { id: "14", emoji: "🥑", visual: "A beautifully plated avocado toast and latte at a brunch cafe.", exif_date: "Mar 22, 2025", source: "Camera", true_event: "Everyday" },
             
-            // --- NOISE & JUNK AVALANCHE ---
+            // --- NOISE & JUNK AVALANCHE (Testing Hallucinations) ---
             { id: "15", emoji: "✈️", visual: "Screenshot of an Indigo flight boarding pass to Delhi.", exif_date: "Aug 12, 2026", source: "Screenshot", true_event: "Utility" },
             { id: "16", emoji: "💊", visual: "Screenshot of a doctor's prescription for antibiotics.", exif_date: "Sept 01, 2026", source: "Screenshot", true_event: "Utility" },
             { id: "17", emoji: "📝", visual: "Photo of a handwritten recipe for chocolate cake.", exif_date: "July 18, 2025", source: "Camera", true_event: "Utility" },
             { id: "18", emoji: "🔥", visual: "Meme: 'This is fine' dog sitting in a burning room.", exif_date: "Sept 20, 2026", source: "WhatsApp Download", true_event: "Meme" },
             { id: "19", emoji: "📞", visual: "Meme: Drake hotline bling template about ignoring emails.", exif_date: "Oct 05, 2025", source: "WhatsApp Download", true_event: "Meme" },
-            { id: "20", emoji: "💼", visual: "Screenshot of a funny Twitter thread about corporate jargon.", exif_date: "Sept 25, 2026", source: "Screenshot", true_event: "Meme" }
+            { id: "20", emoji: "💼", visual: "Screenshot of a funny Twitter thread about corporate jargon.", exif_date: "Sept 25, 2026", source: "Screenshot", true_event: "Meme" },
+            { id: "49", emoji: "🦶", visual: "Blurry photo of the floor, taken by accident.", exif_date: "Oct 10, 2025", source: "Camera", true_event: "Junk" },
+            { id: "50", emoji: "🅿️", visual: "Screenshot of a parking ticket receipt.", exif_date: "Nov 01, 2025", source: "Screenshot", true_event: "Utility" },
+            { id: "51", emoji: "💻", visual: "Meme about software engineers debugging code.", exif_date: "Jan 15, 2026", source: "WhatsApp Download", true_event: "Meme" },
+            { id: "52", emoji: "📶", visual: "Photo of a Wi-Fi password written on a napkin.", exif_date: "Feb 20, 2026", source: "Camera", true_event: "Utility" },
+            { id: "53", emoji: "💬", visual: "Screenshot of a funny text conversation with mom.", exif_date: "Mar 10, 2026", source: "Screenshot", true_event: "Junk" },
+            { id: "54", emoji: "🏋️", visual: "Gym selfie in the mirror after a workout.", exif_date: "April 05, 2026", source: "Camera", true_event: "Everyday" },
+            { id: "55", emoji: "💻", visual: "A generic stock photo of a laptop.", exif_date: "May 12, 2026", source: "Download", true_event: "Junk" },
+            { id: "56", emoji: "🚗", visual: "Photo of the car dashboard showing the check engine light.", exif_date: "June 18, 2026", source: "Camera", true_event: "Utility" },
+            { id: "57", emoji: "🗺️", visual: "Screenshot of Google Maps directions to a clinic.", exif_date: "July 02, 2026", source: "Screenshot", true_event: "Utility" },
+            { id: "58", emoji: "🧾", visual: "Long CVS receipt for a grocery run.", exif_date: "July 15, 2026", source: "Camera", true_event: "Utility" },
+            { id: "59", emoji: "🙀", visual: "Meme of a cat screaming at a woman eating salad.", exif_date: "Aug 05, 2026", source: "WhatsApp Download", true_event: "Meme" },
+            { id: "60", emoji: "☁️", visual: "Random clouds in the sky, aesthetic shot.", exif_date: "Aug 22, 2026", source: "Camera", true_event: "Everyday" },
+            { id: "61", emoji: "🥘", visual: "Screenshot of a recipe for chicken tikka masala.", exif_date: "Sept 10, 2026", source: "Screenshot", true_event: "Utility" },
+            { id: "62", emoji: "👟", visual: "User's sneakers standing on orange autumn leaves.", exif_date: "Oct 01, 2026", source: "Camera", true_event: "Everyday" },
+            { id: "63", emoji: "☕", visual: "A cup of black coffee on a wooden desk.", exif_date: "Oct 02, 2026", source: "Camera", true_event: "Everyday" },
+            { id: "64", emoji: "🪞", visual: "Selfie in an elevator mirror.", exif_date: "Oct 03, 2026", source: "Camera", true_event: "Everyday" },
+            { id: "65", emoji: "🏈", visual: "Photo of a TV screen showing a football game.", exif_date: "Sept 28, 2026", source: "Camera", true_event: "Everyday" },
+            { id: "66", emoji: "😴", visual: "Meme about sleeping 8 hours but still being tired.", exif_date: "Sept 15, 2026", source: "WhatsApp Download", true_event: "Meme" },
+            { id: "67", emoji: "🐛", visual: "Close up of a green bug sitting on a leaf.", exif_date: "May 10, 2025", source: "Camera", true_event: "Everyday" },
+            { id: "68", emoji: "⛈️", visual: "Screenshot of a weather app showing heavy rain.", exif_date: "July 10, 2026", source: "Screenshot", true_event: "Utility" },
+            { id: "69", emoji: "🎫", visual: "Photo of a hand holding a concert ticket.", exif_date: "April 20, 2025", source: "Camera", true_event: "Everyday" },
+            { id: "70", emoji: "📚", visual: "A stack of old dusty books in a library.", exif_date: "Nov 15, 2024", source: "Camera", true_event: "Everyday" }
         ];
 
         const Icons = {
@@ -397,6 +421,12 @@
                                                                             <span className="text-4xl drop-shadow-sm">{photo.emoji}</span>
                                                                         </div>
                                                                     </div>
+
+                                                                    <div className="absolute inset-0 bg-slate-900/85 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex items-center justify-center p-5">
+                                                                        <p className="text-xs md:text-sm text-white text-center font-medium leading-relaxed translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                                                            {photo.visual}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             );
                                                         })}
@@ -439,6 +469,12 @@
                                                                         <div className={`p-4 rounded-2xl shadow-sm ${isMismatch ? 'bg-white/80 border border-[#fce9aa]/50' : 'bg-white/60 border border-slate-100/50'}`}>
                                                                             <span className="text-4xl drop-shadow-sm">{photo.emoji}</span>
                                                                         </div>
+                                                                    </div>
+
+                                                                    <div className="absolute inset-0 bg-slate-900/85 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex items-center justify-center p-5">
+                                                                        <p className="text-xs md:text-sm text-white text-center font-medium leading-relaxed translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                                                            {photo.visual}
+                                                                        </p>
                                                                     </div>
                                                                 </div>
                                                             );
@@ -487,6 +523,12 @@
                                                                 <div className={`p-4 rounded-2xl shadow-sm ${isMismatch ? 'bg-white/80 border border-[#fce9aa]/50' : 'bg-white/60 border border-slate-100/50'}`}>
                                                                     <span className="text-4xl drop-shadow-sm">{photo.emoji}</span>
                                                                 </div>
+                                                            </div>
+
+                                                            <div className="absolute inset-0 bg-slate-900/85 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 flex items-center justify-center p-5">
+                                                                <p className="text-xs md:text-sm text-white text-center font-medium leading-relaxed translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                                                    {photo.visual}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     );
