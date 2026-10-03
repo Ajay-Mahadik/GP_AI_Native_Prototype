@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Episodic AI Anchor MVP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/lucide-react@0.292.0/dist/umd/lucide-react.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+  </style>
+</head>
+<body class="bg-white m-0 p-0 h-screen overflow-hidden text-slate-800 font-sans">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo } = React;
+    const { Search, Image: ImageIcon, Compass, Users, Cloud, Sparkles, Calendar, Tag, Loader2, Info } = lucideReact;
+
+    // --- FULL 70-ITEM STRESS-TEST DATABASE ---
+    const GALLERY_DB = [
+      // 1. The Bali Trip (Proper 2021 Metadata)
+      { id: "1", exif_date: "2021-07-10", true_event: "Bali Trip", visual: "Sunset over the ocean", people: ["Mom", "Dad"], tags: ["beach", "vacation", "sunset"] },
+      { id: "2", exif_date: "2021-07-11", true_event: "Bali Trip", visual: "Family eating dinner at a restaurant", people: ["Mom", "Dad", "Priya"], tags: ["food", "dinner", "restaurant"] },
+      { id: "3", exif_date: "2021-07-12", true_event: "Bali Trip", visual: "Dad surfing on a small wave", people: ["Dad"], tags: ["beach", "surfing", "ocean"] },
+      { id: "4", exif_date: "2021-07-13", true_event: "Bali Trip", visual: "Uluwatu temple on a cliff", people: [], tags: ["temple", "sightseeing", "architecture"] },
+      { id: "5", exif_date: "2021-07-13", true_event: "Bali Trip", visual: "Monkeys stealing a hat near the temple", people: [], tags: ["animals", "funny", "monkeys"] },
+      { id: "6", exif_date: "2021-07-14", true_event: "Bali Trip", visual: "Mom and Priya at a rice terrace", people: ["Mom", "Priya"], tags: ["nature", "green", "fields"] },
+      
+      // 2. The Bali Doppelganger (WhatsApp Download Mismatch - 2026 Metadata)
+      { id: "7", exif_date: "2026-09-27", true_event: "Bali Trip", visual: "Mom and Priya smiling on the beach in Bali", people: ["Mom", "Priya"], tags: ["whatsapp download", "beach", "selfie"] },
+      
+      // 3. Winter Trip 2021
+      { id: "8", exif_date: "2021-12-15", true_event: "Winter Trip 2021", visual: "Hot chocolate in a mug with marshmallows", people: [], tags: ["cafe", "cozy", "drink"] },
+      { id: "9", exif_date: "2021-12-16", true_event: "Winter Trip 2021", visual: "Rahul and Priya skiing down a mountain", people: ["Rahul", "Priya"], tags: ["snow", "skiing", "mountain", "sports"] },
+      { id: "10", exif_date: "2021-12-16", true_event: "Winter Trip 2021", visual: "Red scarf left on a wooden bench in the snow", people: [], tags: ["snow", "clothing", "aesthetic"] },
+      { id: "11", exif_date: "2021-12-17", true_event: "Winter Trip 2021", visual: "Snowman with a carrot nose in front of a cabin", people: [], tags: ["snow", "cabin", "snowman"] },
+      { id: "12", exif_date: "2021-12-18", true_event: "Winter Trip 2021", visual: "Fireplace burning inside the wooden cabin", people: [], tags: ["fire", "warm", "indoors"] },
+      
+      // 4. Kitchen Renovation (Spread out over 6 months)
+      { id: "13", exif_date: "2025-01-10", true_event: "Kitchen Renovation", visual: "Ugly old kitchen before demolition, yellow wallpaper", people: [], tags: ["house", "before", "ugly"] },
+      { id: "14", exif_date: "2025-01-12", true_event: "Kitchen Renovation", visual: "Sledgehammer smashing the old kitchen counter", people: ["Contractor"], tags: ["demolition", "messy"] },
+      { id: "15", exif_date: "2025-03-22", true_event: "Kitchen Renovation", visual: "Contractors installing raw wooden cabinets", people: ["Contractor"], tags: ["remodel", "wood", "construction"] },
+      { id: "16", exif_date: "2025-04-05", true_event: "Kitchen Renovation", visual: "Paint swatches taped to the wall", people: [], tags: ["planning", "colors"] },
+      { id: "17", exif_date: "2025-06-15", true_event: "Kitchen Renovation", visual: "Beautiful new kitchen with white marble countertops", people: [], tags: ["house", "after", "marble", "clean"] },
+      { id: "18", exif_date: "2025-06-16", true_event: "Kitchen Renovation", visual: "Close up of the new brass sink faucet", people: [], tags: ["details", "plumbing"] },
+
+      // 5. 27th Birthday Picnic
+      { id: "19", exif_date: "2025-08-15", true_event: "27th Birthday Picnic", visual: "Wicker picnic basket and chocolate cake in a park", people: [], tags: ["birthday", "cake", "park", "food"] },
+      { id: "20", exif_date: "2025-08-15", true_event: "27th Birthday Picnic", visual: "Rahul holding balloons under a tree", people: ["Rahul"], tags: ["celebration", "balloons", "outdoors"] },
+      { id: "21", exif_date: "2025-08-15", true_event: "27th Birthday Picnic", visual: "Golden retriever trying to eat the birthday cupcake", people: [], tags: ["dog", "funny", "pets", "cupcake"] },
+      { id: "22", exif_date: "2025-08-15", true_event: "27th Birthday Picnic", visual: "Group selfie of friends sitting on a checkered blanket", people: ["Rahul", "Priya", "Mom"], tags: ["friends", "picnic", "selfie"] },
+
+      // 6. Utility / Memes / Singles (Scattered across time)
+      { id: "23", exif_date: "2025-11-01", true_event: "Utility", visual: "Blue parking ticket receipt on a dashboard", people: [], tags: ["receipt", "car", "document"] },
+      { id: "24", exif_date: "2026-06-18", true_event: "Utility", visual: "Car dashboard check engine light glowing yellow", people: [], tags: ["car", "dashboard", "mechanic", "warning"] },
+      { id: "25", exif_date: "2026-07-02", true_event: "Utility", visual: "Screenshot of Google Maps directions to the airport", people: [], tags: ["screenshot", "map", "travel"] },
+      { id: "26", exif_date: "2021-12-17", true_event: "Meme", visual: "Funny internet meme about coding bugs", people: [], tags: ["meme", "screenshot", "humor"] },
+      { id: "27", exif_date: "2025-02-14", true_event: "Utility", visual: "Receipt for a dozen roses", people: [], tags: ["receipt", "valentines", "shopping"] },
+      { id: "28", exif_date: "2026-09-01", true_event: "Everyday", visual: "My morning coffee cup on a glass desk", people: [], tags: ["coffee", "morning", "desk"] },
+      
+      // 7. Everyday Padding / Noise (To prove chronological sorting and filtering)
+      ...Array.from({ length: 42 }, (_, i) => ({
+        id: (29 + i).toString(),
+        exif_date: new Date(2022 + Math.floor(i/10), (i % 12), (i % 28) + 1).toISOString().split('T')[0],
+        true_event: "Everyday",
+        visual: `Random everyday photo of a ${['cat', 'meal', 'sunset', 'street', 'book', 'plant', 'laptop', 'building'][i % 8]}`,
+        people: i % 7 === 0 ? ["Rahul"] : i % 5 === 0 ? ["Priya"] : [],
+        tags: ["everyday", "misc"]
+      }))
+    ];
+
+    const App = () => {
+      const [searchQuery, setSearchQuery] = useState('');
+      const [isSearching, setIsSearching] = useState(false);
+      const [results, setResults] = useState(null);
+      const [error, setError] = useState(null);
+
+      // --- CHRONOLOGICAL DEFAULT VIEW LOGIC ---
+      const sortedDefaultGallery = useMemo(() => {
+        const sorted = [...GALLERY_DB].sort((a, b) => new Date(b.exif_date) - new Date(a.exif_date));
+        const grouped = {};
+        sorted.forEach(photo => {
+          const dateString = new Date(photo.exif_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          if (!grouped[dateString]) grouped[dateString] = [];
+          grouped[dateString].push(photo);
+        });
+        return grouped;
+      }, []);
+
+      const handleSearch = async (e) => {
+        if (e) e.preventDefault();
+        if (!searchQuery.trim()) return;
+
+        setIsSearching(true);
+        setResults(null);
+        setError(null);
+
+        const prompt = `
+          You are an AI Semantic Retrieval Engine for a photo gallery. 
+          User Query: "${searchQuery}"
+          
+          Database: ${JSON.stringify(GALLERY_DB)}
+          
+          TASK: Find matching photos and categorize their IDs into two arrays:
+          1. episode_photo_ids: IDs of photos that belong to a major event (e.g., a trip, renovation, birthday).
+          2. loose_match_ids: IDs of standalone photos (like memes, receipts, everyday padding, or single items) that match the query but do NOT form a major event.
+          
+          RULES:
+          - RETURN ONLY A VALID JSON OBJECT.
+          - DO NOT wrap the JSON in markdown blocks like \`\`\`json.
+          - Example output: {"episode_photo_ids": ["1", "2"], "loose_match_ids": ["23"]}
+        `;
+
+        try {
+          // --- NETLIFY SERVERLESS FETCH ---
+          const response = await fetch('/.netlify/functions/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt })
+          });
+
+          if (!response.ok) throw new Error("Search failed to connect to backend.");
+          
+          const data = await response.json();
+          
+          let aiText = data.candidates[0].content.parts[0].text;
+          aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+          
+          const parsedAI = JSON.parse(aiText);
+
+          // --- DETERMINISTIC HYDRATION LOGIC ---
+          const hydratedEpisodes = {};
+          (parsedAI.episode_photo_ids || []).forEach(id => {
+            const photo = GALLERY_DB.find(p => String(p.id) === String(id));
+            if (photo && photo.true_event && !["Utility", "Meme", "Everyday"].includes(photo.true_event)) {
+              if (!hydratedEpisodes[photo.true_event]) {
+                hydratedEpisodes[photo.true_event] = { title: photo.true_event, photos: [] };
+              }
+              hydratedEpisodes[photo.true_event].photos.push(photo);
+            }
+          });
+
+          const looseMatches = (parsedAI.loose_match_ids || [])
+            .map(id => GALLERY_DB.find(p => String(p.id) === String(id)))
+            .filter(Boolean);
+
+          const finalEpisodes = Object.values(hydratedEpisodes).filter(ep => ep.photos.length >= 2);
+          
+          setResults({ episodes: finalEpisodes, looseMatches });
+
+        } catch (err) {
+          console.error(err);
+          setError("Failed to process the semantic search. Ensure your Netlify environment variable is set.");
+        } finally {
+          setIsSearching(false);
+        }
+      };
+
+      const resetSearch = () => {
+        setSearchQuery('');
+        setResults(null);
+        setError(null);
+      };
+
+      return (
+        <div className="flex h-screen w-full bg-white font-sans overflow-hidden">
+          
+          {/* --- LEFT SIDEBAR --- */}
+          <div className="w-64 border-r border-slate-200 flex flex-col bg-white shrink-0">
+            <div className="p-6 flex items-center gap-3">
+              <Sparkles className="text-blue-500" size={28} />
+              <span className="text-xl font-normal text-slate-800">Photos AI</span>
+            </div>
+            
+            <nav className="flex-1 px-3 space-y-1 mt-4">
+              <button onClick={resetSearch} className="w-full flex items-center gap-4 px-4 py-3 rounded-full bg-blue-50 text-blue-700 font-medium transition-colors">
+                <ImageIcon size={20} /> Photos
+              </button>
+              <button className="w-full flex items-center gap-4 px-4 py-3 rounded-full text-slate-600 hover:bg-slate-100 transition-colors">
+                <Compass size={20} /> Explore
+              </button>
+              <button className="w-full flex items-center gap-4 px-4 py-3 rounded-full text-slate-600 hover:bg-slate-100 transition-colors">
+                <Users size={20} /> Sharing
+              </button>
+            </nav>
+            
+            <div className="p-6 border-t border-slate-200 text-sm text-slate-500">
+              <div className="flex items-center gap-2 mb-2">
+                <Cloud size={16} /> Storage
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
+                <div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '45%' }}></div>
+              </div>
+              <span>45% of 15 GB used</span>
+            </div>
+          </div>
+
+          {/* --- MAIN CONTENT AREA --- */}
+          <div className="flex-1 flex flex-col h-full bg-slate-50 relative overflow-hidden">
+            
+            <header className="h-20 border-b border-slate-200 bg-white flex items-center px-8 shrink-0 shadow-sm z-10">
+              <form onSubmit={handleSearch} className="w-full max-w-3xl relative flex items-center">
+                <Search className="absolute left-4 text-slate-400" size={20} />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Describe a memory, event, or object..."
+                  className="w-full h-12 pl-12 pr-24 bg-slate-100 rounded-full border-none outline-none focus:ring-2 focus:ring-blue-500/50 transition-all text-slate-700 placeholder-slate-400"
+                />
+                <button 
+                  type="submit"
+                  disabled={isSearching || !searchQuery.trim()}
+                  className="absolute right-1 h-10 px-5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-full font-medium transition-colors flex items-center gap-2"
+                >
+                  {isSearching ? <Loader2 size={18} className="animate-spin" /> : <Sparkles size={18} />}
+                  Ask
+                </button>
+              </form>
+            </header>
+
+            <main className="flex-1 overflow-y-auto p-8 relative">
+              
+              {error && (
+                <div className="max-w-3xl mx-auto p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-center gap-3">
+                  <Info size={20} /> {error}
+                </div>
+              )}
+
+              {/* SEARCH RESULTS VIEW */}
+              {results && !isSearching && (
+                <div className="max-w-5xl mx-auto space-y-12 pb-20">
+                  
+                  {results.episodes.length === 0 && results.looseMatches.length === 0 && (
+                    <div className="text-center py-20 text-slate-500">
+                      <ImageIcon size={48} className="mx-auto text-slate-300 mb-4" />
+                      <h3 className="text-xl font-medium text-slate-700 mb-2">No matching memories found</h3>
+                      <p>Try searching for a different visual, person, or event.</p>
+                    </div>
+                  )}
+
+                  {results.episodes.map((episode) => (
+                    // REACT KEY FIX
+                    <div key={episode.title} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                      <input 
+                        type="text" 
+                        defaultValue={episode.title} 
+                        className="text-2xl font-semibold text-slate-800 mb-6 bg-transparent border-none outline-none hover:bg-slate-50 px-2 py-1 rounded w-full" 
+                      />
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {episode.photos.map(photo => <PhotoCard key={photo.id} photo={photo} />)}
+                      </div>
+                    </div>
+                  ))}
+
+                  {results.looseMatches.length > 0 && (
+                    <div className="pt-8">
+                      {results.episodes.length === 0 ? (
+                        <div className="mb-6 p-4 bg-blue-50 text-blue-700 rounded-xl flex items-center gap-3">
+                          <Info size={20} />
+                          <span>No specific events found, but here are some related photos.</span>
+                        </div>
+                      ) : (
+                        <h3 className="text-lg font-medium text-slate-700 mb-4 px-2">Related Singles & Utilities</h3>
+                      )}
+                      
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {results.looseMatches.map(photo => <PhotoCard key={photo.id} photo={photo} />)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* DEFAULT CHRONOLOGICAL VIEW */}
+              {!results && !isSearching && !error && (
+                <div className="max-w-5xl mx-auto space-y-10 pb-20">
+                  {Object.entries(sortedDefaultGallery).map(([dateStr, photos]) => (
+                    <div key={dateStr} className="space-y-4">
+                      <h2 className="sticky top-0 bg-slate-50/90 backdrop-blur py-2 z-10 text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                        {dateStr}
+                      </h2>
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {photos.map(photo => <PhotoCard key={photo.id} photo={photo} />)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </main>
+          </div>
+        </div>
+      );
+    };
+
+    const PhotoCard = ({ photo }) => {
+      const isDocument = photo.tags.includes('receipt') || photo.tags.includes('screenshot');
+      const isPerson = photo.people.length > 0;
+      
+      return (
+        <div className="group relative aspect-square rounded-xl overflow-hidden bg-slate-200 cursor-pointer shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+             {isDocument ? <Tag size={32} className="text-slate-400 mb-2" /> : 
+              isPerson ? <Users size={32} className="text-blue-400 mb-2" /> : 
+              <ImageIcon size={32} className="text-emerald-400 mb-2" />}
+             <span className="text-xs font-medium text-slate-600 line-clamp-2">{photo.visual}</span>
+          </div>
+
+          <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end text-white text-xs">
+            <div className="flex items-center gap-1 mb-1">
+              <Calendar size={12} /> {photo.exif_date}
+            </div>
+            {photo.people.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Users size={12} /> {photo.people.join(', ')}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
