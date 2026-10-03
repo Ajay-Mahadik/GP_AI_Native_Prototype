@@ -1,35 +1,23 @@
-// netlify/functions/search.js
-exports.handler = async function(event, context) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
-  }
+exports.handler = async function (event, context) {
+    if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'Method Not Allowed' };
 
-  try {
-    const { prompt } = JSON.parse(event.body);
-    const apiKey = process.env.GEMINI_API_KEY; // Pulled secretly from Netlify
+    const apiKey = process.env.GEMINI_API_KEY;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      }
-    );
+    try {
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: event.body // Netlify passes the body as a raw string automatically
+        });
 
-    const data = await response.json();
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify(data)
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
-  }
+        const data = await response.text();
+        return {
+            statusCode: 200,
+            headers: { "Content-Type": "application/json" },
+            body: data
+        };
+    } catch (error) {
+        return { statusCode: 500, body: JSON.stringify({ error: 'Failed to fetch AI results' }) };
+    }
 };
